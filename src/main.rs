@@ -1,7 +1,8 @@
-fn main() {
-    println!("{}", square_sum(40))
-}
+use std::thread;
 
-fn square_sum(n: isize) -> isize {
-    (0..n).filter(|i| i % 2 == 0).map(|i| i * i).sum()
+fn main() {
+    let x = vec![100, 200];
+    thread::spawn(move || println!("x is {:?}", x));
+
+    println!("ok")
 }
