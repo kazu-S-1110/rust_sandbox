@@ -1,20 +1,27 @@
-use std::{sync::mpsc, thread};
+use std::fmt::format;
+use std::fs::File;
+use std::io::prelude::*;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 fn main() {
-    let (sender1, receiver1) = mpsc::channel();
-    let (sender2, receiver2) = mpsc::channel();
+    let mut file = File::create("buffer.txt").unwrap();
+    let target = Arc::new(Mutex::new(file));
+    let counter = Arc::new(Mutex::new(0));
 
-    thread::spawn(move || {
-        let val = receiver1.recv().unwrap();
-        println!("send from main thread. {}", val);
+    let th1 = thread::spawn(move || {
+        let counter = Arc::clone(&counter);
+        let target = Arc::clone(&target);
+        let mut num = counter.lock().unwrap();
+        let mut target_file = target.lock().unwrap();
 
-        sender2.send("hi".to_string()).unwrap();
+        let content = format!("th1 : {}", num);
+
+        let f = write!(target_file, "{}", content);
+        let _res = match f {
+            Ok(file) => file,
+            Err(error) => panic!("why rust {:?}", error),
+        };
+        *num += 1;
     });
-
-    sender1.send("hello".to_string()).unwrap();
-
-    let val = receiver2.recv().unwrap();
-    println!("send from sub thread. {}", val);
-
-    // println!("x is {:?}", x) 所有権が写ってしまったので実行不可。
 }
